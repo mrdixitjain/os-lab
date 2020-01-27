@@ -1,0 +1,4 @@
+composite:
+	in this, we want to use object of more than one class.
+
+	to do this, instead of inheriting, we declare variables of those classes and when we call current class, we pass those variables.
