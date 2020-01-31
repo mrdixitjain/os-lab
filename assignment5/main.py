@@ -32,7 +32,7 @@ if __name__=='__main__':
 		while(j<len(process)):
 			if(process[j-1]=='P'):
 				processes0[i]['executionTime']+=int(process[j])
-			processes0[i]['totalBurst']+=int(process[j])
+				processes0[i]['totalBurst']+=int(process[j])
 			j+=2
 		processes1.append({})
 		processes1[i]['pid']=int(process[0])
@@ -47,7 +47,7 @@ if __name__=='__main__':
 		while(j<len(process)):
 			if(process[j-1]=='P'):
 				processes1[i]['executionTime']+=int(process[j])
-			processes1[i]['totalBurst']+=int(process[j])
+				processes1[i]['totalBurst']+=int(process[j])
 			j+=2
 		processes2.append({})
 		processes2[i]['pid']=int(process[0])
@@ -62,7 +62,7 @@ if __name__=='__main__':
 		while(j<len(process)):
 			if(process[j-1]=='P'):
 				processes2[i]['executionTime']+=int(process[j])
-			processes2[i]['totalBurst']+=int(process[j])
+				processes2[i]['totalBurst']+=int(process[j])
 			j+=2
 		processes3.append({})
 		processes3[i]['pid']=int(process[0])
@@ -77,7 +77,7 @@ if __name__=='__main__':
 		while(j<len(process)):
 			if(process[j-1]=='P'):
 				processes3[i]['executionTime']+=int(process[j])
-			processes3[i]['totalBurst']+=int(process[j])
+				processes3[i]['totalBurst']+=int(process[j])
 			j+=2
 		processes4.append({})
 		processes4[i]['pid']=int(process[0])
@@ -92,7 +92,7 @@ if __name__=='__main__':
 		while(j<len(process)):
 			if(process[j-1]=='P'):
 				processes4[i]['executionTime']+=int(process[j])
-			processes4[i]['totalBurst']+=int(process[j])
+				processes4[i]['totalBurst']+=int(process[j])
 			j+=2
 		processes5.append({})
 		processes5[i]['pid']=int(process[0])
@@ -107,10 +107,10 @@ if __name__=='__main__':
 		while(j<len(process)):
 			if(process[j-1]=='P'):
 				processes5[i]['executionTime']+=int(process[j])
-			processes5[i]['totalBurst']+=int(process[j])
+				processes5[i]['totalBurst']+=int(process[j])
 			j+=2
-	for i in processes0:
-		print(i)
+	# for i in processes0:
+	# 	print(i)
 	answer=FCFS(processes0)
 	printOutput(answer, "FCFS")
 	print()
