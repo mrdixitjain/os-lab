@@ -11,6 +11,15 @@ def updateReadyPNPE(ready, processes, time): # function to update ready[]. if an
 	ready=sorted(ready, key = lambda i: i['priority'], reverse=True)[:]
 	return ready
 
+def getNewProcess(ready, time):
+	currentProcess="none"
+	if(len(ready)>0):
+		currentProcess=ready[0]
+		if(currentProcess['startTime']==-1):
+			currentProcess['startTime']=time
+		del ready[0]
+	return currentProcess
+
 def PriorityNonPreEmptive(processes):
 	prcs=processes[:]
 	
@@ -67,23 +76,13 @@ def PriorityNonPreEmptive(processes):
 								# to complete current cycle of updateOutput.
 								outputQueue.append(currentProcess) # process added to outputQueue where it'll wait for it's turn.
 							# now another process will run on cpu.
-							if(len(ready)>0):
-								currentProcess=ready[0]
-								if(currentProcess['startTime']==-1):
-									currentProcess['startTime']=time
-								del ready[0]
-							else:
-								currentProcess="none"
+							currentProcess=getNewProcess(ready, time)
+							
 						else:
 							currentProcess['endTime']=time
 							endedProcess.append(currentProcess)
-							if(len(ready)>0):
-								currentProcess=ready[0]
-								if(currentProcess['startTime']==-1):
-									currentProcess['startTime']=time
-								del ready[0]
-							else:
-								currentProcess="none"
+							currentProcess=getNewProcess(ready, time)
+							
 						continue
 					
 
@@ -96,22 +95,14 @@ def PriorityNonPreEmptive(processes):
 						# to complete current cycle of updateOutput.
 						outputQueue.append(currentProcess) # process added to outputQueue where it'll wait for it's turn.
 					# now another process will run on cpu.
-					if(len(ready)>0):
-						currentProcess=ready[0]
-						if(currentProcess['startTime']==-1):
-							currentProcess['startTime']=time
-						del ready[0]
-					else:
-						currentProcess="none"
+					currentProcess=getNewProcess(ready, time)
+							
 					continue
 		else:
 			cpuRunning.append('idle')
 
-			if(len(ready)>0):
-				currentProcess=ready[0]
-				if(currentProcess['startTime']==-1):
-					currentProcess['startTime']=time
-				del ready[0]
+			currentProcess=getNewProcess(ready, time)
+							
 			continue
 
 	

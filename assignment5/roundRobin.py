@@ -11,6 +11,15 @@ def updateReadyRR(ready, processes, time): # function to update ready[]. if any 
 	# ready=sorted(ready, key = lambda i: i['arrivalTime'])[:]
 	return ready
 
+def getNewProcess(ready, time):
+	currentProcess="none"
+	if(len(ready)>0):
+		currentProcess=ready[0]
+		if(currentProcess['startTime']==-1):
+			currentProcess['startTime']=time
+		del ready[0]
+	return currentProcess
+
 def RoundRobin(processes, quanta):# main function which will implement FCFS scheduling process.
 	prcs=processes[:]
 	
@@ -78,15 +87,8 @@ def RoundRobin(processes, quanta):# main function which will implement FCFS sche
 								# to complete current cycle of updateOutput.
 								outputQueue.append(currentProcess) # process added to outputQueue where it'll wait for it's turn.
 							# now another process will run on cpu.
-							if(len(ready)>0):
-								currentProcess=ready[0]
-								currentQuanta=0
-								if(currentProcess['startTime']==-1):
-									currentProcess['startTime']=time
-								del ready[0]
-							else:
-								currentProcess="none"
-								currentQuanta=0
+							currentProcess=getNewProcess(ready, time)
+							currentQuanta=0
 							continue
 					
 						else: # process is completed. Add it to endedProcess[] and check for new process to run on cpu
@@ -94,15 +96,8 @@ def RoundRobin(processes, quanta):# main function which will implement FCFS sche
 							endedProcess.append(currentProcess)
 
 							# if there is a process to run on cpu than ok else currentProcess = "none"
-							if(len(ready)>0):
-								currentProcess=ready[0]
-								currentQuanta=0
-								if(currentProcess['startTime']==-1):
-									currentProcess['startTime']=time
-								del ready[0]
-							else:
-								currentProcess="none"
-								currentQuanta=0
+							currentProcess=getNewProcess(ready, time)
+							currentQuanta=0
 						continue
 				
 
@@ -111,16 +106,8 @@ def RoundRobin(processes, quanta):# main function which will implement FCFS sche
 
 
 						# check if there is any other process in ready queue which has lower arrival time than current process.
-						if(len(ready)>0):
-							# cpuRunning.append(currentProcess['pid'])
-							currentProcess=ready[0]
-							currentQuanta=0
-							if(currentProcess['startTime']==-1):
-								currentProcess['startTime']=time
-							del ready[0]
-						else:
-							currentProcess="none"
-							currentQuanta=0
+						currentProcess=getNewProcess(ready, time)
+						currentQuanta=0
 						continue
 
 				else: # if current process is using input or output device
@@ -132,25 +119,14 @@ def RoundRobin(processes, quanta):# main function which will implement FCFS sche
 						# to complete current cycle of updateOutput.
 						outputQueue.append(currentProcess) # process added to outputQueue where it'll wait for it's turn.
 					# now another process will run on cpu if there is any.
-					if(len(ready)>0):
-						currentProcess=ready[0]
-						currentQuanta=0
-						if(currentProcess['startTime']==-1):
-							currentProcess['startTime']=time
-						del ready[0]
-					else:
-						currentProcess="none"
-						currentQuanta=0
+					currentProcess=getNewProcess(ready, time)
+					currentQuanta=0
 					continue
 		else: # check if there is any process ready to run.
 			cpuRunning.append('idle')
 
-			if(len(ready)>0):
-				currentProcess=ready[0]
-				currentQuanta=0
-				if(currentProcess['startTime']==-1):
-					currentProcess['startTime']=time
-				del ready[0]
+			currentProcess=getNewProcess(ready, time)
+			currentQuanta=0
 			continue
 
 

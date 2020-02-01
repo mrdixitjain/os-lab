@@ -11,6 +11,15 @@ def updateReadySRTF(ready, processes, time): # function to update ready[]. if an
 	ready=sorted(ready, key = lambda i: i['executionTime'])[:]
 	return ready
 
+def getNewProcess(ready, time):
+	currentProcess="none"
+	if(len(ready)>0):
+		currentProcess=ready[0]
+		if(currentProcess['startTime']==-1):
+			currentProcess['startTime']=time
+		del ready[0]
+	return currentProcess
+
 def SRTF(processes): # main function which will implement SRTF scheduling process.
 	prcs=processes[:]
 	
@@ -71,24 +80,12 @@ def SRTF(processes): # main function which will implement SRTF scheduling proces
 								# to complete current cycle of updateOutput.
 								outputQueue.append(currentProcess) # process added to outputQueue where it'll wait for it's turn.
 							# now another process will run on cpu.
-							if(len(ready)>0):
-								currentProcess=ready[0]
-								if(currentProcess['startTime']==-1):
-									currentProcess['startTime']=time
-								del ready[0]
-							else:
-								currentProcess="none"
+							currentProcess=getNewProcess(ready, time)
 						else:  # process is completed. Add it to endedProcess[] and check for new process to run on cpu
 							currentProcess['endTime']=time
 							endedProcess.append(currentProcess)
 							# if there is a process to run on cpu than ok else currentProcess = "none"
-							if(len(ready)>0):
-								currentProcess=ready[0]
-								if(currentProcess['startTime']==-1):
-									currentProcess['startTime']=time
-								del ready[0]
-							else:
-								currentProcess="none"
+							currentProcess=getNewProcess(ready, time)
 						continue
 					
 
@@ -112,21 +109,11 @@ def SRTF(processes): # main function which will implement SRTF scheduling proces
 						# to complete current cycle of updateOutput.
 						outputQueue.append(currentProcess) # process added to outputQueue where it'll wait for it's turn.
 					# now another process will run on cpu if there is any.
-					if(len(ready)>0):
-						currentProcess=ready[0]
-						if(currentProcess['startTime']==-1):
-							currentProcess['startTime']=time
-						del ready[0]
-					else:
-						currentProcess="none"
+					currentProcess=getNewProcess(ready, time)
 					continue
 		else: # check if there is any process ready to run.
 			cpuRunning.append('idle')
-			if(len(ready)>0):
-				currentProcess=ready[0]
-				if(currentProcess['startTime']==-1):
-					currentProcess['startTime']=time
-				del ready[0]
+			currentProcess=getNewProcess(ready, time)
 			continue
 
 	# print(len(cpuRunning), len(inputRunning), len(outputRunning))
