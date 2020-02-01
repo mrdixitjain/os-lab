@@ -25,17 +25,16 @@ if __name__=='__main__':
 		processes[i-4]['priority']=int(process[1])
 		processes[i-4]['arrivalTime']=int(process[2])
 		processes[i-4]['execution']=process[3:len(process)-1]
-		processes[i-4]['executionTime']=0
 		processes[i-4]['startTime']=-1
 		processes[i-4]['endTime']=-1
 		processes[i-4]['totalBurst']=0
 		processes[i-4]['currentQueue']=-1
+		processes[i-4]['degradeTime']=0
 		processes[i-4]['quanta']=0
 		j=4
 		while(j<len(process)):
 			if(process[j-1]=='P'):
-				processes[i-4]['executionTime']+=int(process[j])
-			processes[i-4]['totalBurst']+=int(process[j])
+				processes[i-4]['totalBurst']+=int(process[j])
 			j+=2
 	# for i in processes:
 	# 	print(i)

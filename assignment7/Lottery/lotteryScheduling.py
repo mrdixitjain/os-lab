@@ -3,21 +3,27 @@
 
 from updateInput import *
 from updateOutput import *
-from getNewProcess import *
+import random
 
-def updateReadyFCFS(ready, processes, time): # function to update ready[]. if any new process came, it'll be added to it and again it will be sorted on the basis of arrival time.
-	while(len(processes)>0 and processes[0]['arrivalTime']<=time): # to check if there is any process whose arrival time is less than current time i.e it should be ready to execute.
-		ready.append(processes[0])
-		del processes[0]
-	# ready=sorted(ready, key = lambda i: i['arrivalTime'])[:]
-	return ready
+from redistributeTickets import *
 
-def FCFS(processes):# main function which will implement FCFS scheduling process.
+def getNewProcess(processes, time, tickets):
+	currentProcess='none'
+	if(len(processes)>0):
+		n=random.randint(0, len(tickets)-1)
+		pid=tickets[n]
+		for i in range(len(processes)):
+			if(processes[i]['pid']==pid):
+				currentProcess=processes[i]
+				if(currentProcess['startTime']==-1):
+					currentProcess['startTime']=time
+				del processes[i]
+				break
+	return currentProcess
+
+
+def Lottery(processes, tickets, currentShare):# main function which will implement FCFS scheduling process.
 	prcs=processes[:]
-	
-	#sorted processes on the basis of arrival time
-	processes = sorted(processes, key = lambda i: i['arrivalTime'])[:]#it will hold those process which are yet to be processed.
-
 	# to store processes executing or waiting for input output devices
 	inputQueue=[]
 	outputQueue=[]
@@ -31,80 +37,64 @@ def FCFS(processes):# main function which will implement FCFS scheduling process
 	endedProcess=[]# keep track of all processes which completed their execution.
 
 	# all resources will stay idle till first process will arrive.
-	if(processes[0]['arrivalTime']>0):
-		for i in range(processes[0]['arrivalTime']):
-			cpuRunning.append('idle')
-			inputRunning.append('idle')
-			outputRunning.append('idle')
-
 	# first process will be process which arrived first
 	# as we sorted processes on the basis of arrival time 
 	# processes[0] will be first process to come
+	time=0
 
-	currentProcess=processes[0]
-	time = currentProcess['arrivalTime'] # it will keep track of time.
-	if(currentProcess['startTime']==-1):
-		currentProcess['startTime']=time
-	del processes[0]
+	currentProcess=getNewProcess(processes, time, tickets)
 
-	ready=[] # will hold those process which are in ready state.
-	ready=updateReadyFCFS(ready, processes, time)
-
-	while(currentProcess!="none" or len(ready)>0 or len(processes)>0 or len(inputQueue)>0 or len(outputQueue)):
+	while(currentProcess!="none" or len(processes)>0 or len(inputQueue)>0 or len(outputQueue)):
 		time+=1
-		updateInput(inputQueue, ready, inputRunning, time, endedProcess, outputQueue)
-		updateOutput(outputQueue, ready, outputRunning, time, endedProcess, inputQueue)
-		ready=updateReadyFCFS(ready, processes, time)
+
+		currentShare=updateInput(inputQueue, processes, inputRunning, time, endedProcess, outputQueue, tickets, currentShare)
+		currentShare=updateOutput(outputQueue, processes, outputRunning, time, endedProcess, inputQueue, tickets, currentShare)
 		if(currentProcess!="none"):
 			if(len(currentProcess['execution'])>0):
 				if(currentProcess['execution'][0]=='P'): # i.e. it was working on cpu last.
 					if(int(currentProcess['execution'][1])>0):
 						cpuRunning.append(currentProcess['pid'])
 						currentProcess['execution'][1]=str(int(currentProcess['execution'][1])-1)
-						currentProcess['executionTime']-=1
 
 					if(int(currentProcess['execution'][1])==0): # if it's current execution on cpu is finished.
 						currentProcess['execution']=currentProcess['execution'][2:]
 						if(len(currentProcess['execution'])>0): # i.e. process is not completed yet.
 							if(currentProcess['execution'][0]=='I'): # will go for input
 								# to complete current cycle of updateInput.
+								currentShare-=currentProcess['cpuShare']
+								redistributeTickets(processes, tickets, currentShare)
 								inputQueue.append(currentProcess) # process added to inputQueue where it'll wait for it's turn.
 							if(currentProcess['execution'][0]=='O'):
 								# to complete current cycle of updateOutput.
+								currentShare-=currentProcess['cpuShare']
+								redistributeTickets(processes, tickets, currentShare)
 								outputQueue.append(currentProcess) # process added to outputQueue where it'll wait for it's turn.
-							# now another process will run on cpu.
-							currentProcess=getNewProcess(ready, time)
-							
-							continue
 						
 						else: # process is completed. Add it to endedProcess[] and check for new process to run on cpu
 							currentProcess['endTime']=time
-							endedProcess.append(currentProcess)
+							currentShare-=currentProcess['cpuShare']
+							redistributeTickets(processes, tickets, currentShare)
+							endedProcess.append(currentProcess)	
 
-							# if there is a process to run on cpu than ok else currentProcess = "none"
-							currentProcess=getNewProcess(ready, time)
-							
-						continue
-					
+					else:
+						processes.append(currentProcess)			
 
 				else: # if current process is using input or output device
 					cpuRunning.append('idle')
 					if(currentProcess['execution'][0]=='I'): # will go for input
+						currentShare-=currentProcess['cpuShare']
+						redistributeTickets(processes, tickets, currentShare)
 						# to complete current cycle of updateInput.
 						inputQueue.append(currentProcess) # process added to inputQueue where it'll wait for it's turn.
 					if(currentProcess['execution'][0]=='O'):
 						# to complete current cycle of updateOutput.
+						currentShare-=currentProcess['cpuShare']
+						redistributeTickets(processes, tickets, currentShare)
 						outputQueue.append(currentProcess) # process added to outputQueue where it'll wait for it's turn.
-					# now another process will run on cpu if there is any.
-					currentProcess=getNewProcess(ready, time)
-							
-					continue
-		else: # check if there is any process ready to run.
+		else: # check if there is any process processes to run.
 			cpuRunning.append('idle')
 
-			currentProcess=getNewProcess(ready, time)
-							
-			continue
+		currentProcess=getNewProcess(processes, time, tickets)
 
 	# print(len(cpuRunning), len(inputRunning), len(outputRunning))
 	# # print()

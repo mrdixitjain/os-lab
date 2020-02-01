@@ -1,6 +1,7 @@
 import operator
 from updateOutput import *
 from updateInput import *
+
 def updateQueue0(queue, processes, time): # function to update ready[]. if any new process came, it'll be added to it and again it will be sorted on the basis of arrival time.
 	while(len(processes)>0 and processes[0]['arrivalTime']<=time): # to check if there is any process whose arrival time is less than current time i.e it should be ready to execute.
 		processes[0]['currentQueue']=0
@@ -28,19 +29,12 @@ def printQueues(queues):
 def upgradeQueues(queues):
 	for i in range(len(queues)-1):
 		while(len(queues[i+1].processBuffer)):
+			queues[i+1].processBuffer[0]['degradeTime']=0
 			queues[i+1].processBuffer[0]['quanta']=0
 			queues[i+1].processBuffer[0]['currentQueue']-=1
 			queues[i].processBuffer.append(queues[i+1].processBuffer[0])
 			del queues[i+1].processBuffer[0]
 	# print('upgraded')
-
-def degradeQueues(queues):
-	for i in range(len(queues)-1, -1, -1):
-		while(len(queues[i-1].processBuffer)):
-			queues[i-1].processBuffer[0]['quanta']=0
-			queues[i-1].processBuffer[0]['currentQueue']+=1
-			queues[i].processBuffer.append(queues[i-1].processBuffer[0])
-			del queues[i-1].processBuffer[0]
 	# print('degraded')
 
 def getNextProcess(queues, time):
@@ -92,28 +86,38 @@ def MLFQ(processes, queues, t1, t2):
 		currentProcess['currentQueue']=0
 	del processes[0]
 	upgradeTime=time
-	degradeTime=time
+	currentProcess['quanta']=0
 
 	updateQueue0(queues[0], processes, time)
 
 	while(currentProcess!="none" or isAllQueueEmpty(queues)==False or len(inputQueue)>0 or len(outputQueue)>0 or len(processes)>0):
 		time+=1
 		upgradeTime+=1
-		degradeTime+=1
+		# print('-> ', end="")
+		# print(currentProcess)
+		# print()
+		# printQueues(queues)
+		# print()
+		# print(inputQueue)
+		# print()
+		# print(outputQueue)
+		# print()
 		updateInput(inputQueue, queues, inputRunning, time, endedProcess, outputQueue)
 		updateOutput(outputQueue, queues, outputRunning, time, endedProcess, inputQueue)
 		updateQueue0(queues[0], processes, time)
+
 		if(currentProcess!="none"):
 			if(currentProcess['execution'][0]=='P'): # i.e. it was working on cpu last.
 				currentProcess['quanta']+=1
 				if(int(currentProcess['execution'][1])>0):
 					cpuRunning.append(currentProcess['pid'])
 					currentProcess['execution'][1]=str(int(currentProcess['execution'][1])-1)
-					currentProcess['executionTime']-=1
+					currentProcess['degradeTime']+=1
 
 				if(int(currentProcess['execution'][1])==0): # if it's current execution on cpu is finished.
 					currentProcess['execution']=currentProcess['execution'][2:]
 					if(len(currentProcess['execution'])>0): # i.e. process is not completed yet.
+						currentProcess['quanta']=0
 						if(currentProcess['execution'][0]=='I'): # will go for input
 							# to complete current cycle of updateInput.
 							inputQueue.append(currentProcess) # process added to inputQueue where it'll wait for it's turn.
@@ -122,7 +126,6 @@ def MLFQ(processes, queues, t1, t2):
 							outputQueue.append(currentProcess) # process added to outputQueue where it'll wait for it's turn.
 						# now another process will run on cpu.
 						currentProcess=getNextProcess(queues, time)
-						
 					
 					else: # process is completed. Add it to endedProcess[] and check for new process to run on cpu
 						currentProcess['endTime']=time
@@ -130,25 +133,33 @@ def MLFQ(processes, queues, t1, t2):
 
 						# if there is a process to run on cpu than ok else currentProcess = "none"
 						currentProcess=getNextProcess(queues, time)
+
+				if(currentProcess!='none'):
+					if(currentProcess['degradeTime']>=t1):
+						currentProcess['quanta']=0
+						if(currentProcess['currentQueue']!=len(queues)-1):
+							currentProcess['currentQueue']+=1
+						currentProcess['degradeTime']=0
+						queues[currentProcess['currentQueue']].processBuffer.append(currentProcess)
+						currentProcess=getNextProcess(queues, time)
+							
+					elif(currentProcess['quanta']>=queues[currentProcess['currentQueue']].quanta):
+						currentProcess['quanta']=0
+						queues[currentProcess['currentQueue']].processBuffer.append(currentProcess)
+						currentProcess=getNextProcess(queues, time)
 						
-				elif(currentProcess['quanta']>=queues[currentProcess['currentQueue']].quanta):
-					if(currentProcess['currentQueue']<len(queues)-1):
-						currentProcess['currentQueue']+=1
-					currentProcess['quanta']=0
-					queues[currentProcess['currentQueue']].processBuffer.append(currentProcess)
-					currentProcess=getNextProcess(queues, time)
-					
-				else:
-					n=getNextProcessQueue(queues)
-					if(n>=0 and n<currentProcess['currentQueue']):
-						queues[currentProcess['currentQueue']].processBuffer.insert(0, currentProcess)
-						currentProcess=queues[n].processBuffer[0]
-						if(currentProcess['startTime']==-1):
-							currentProcess['startTime']=time
-						del queues[n].processBuffer[0]
+					else:
+						n=getNextProcessQueue(queues)
+						if(n>=0 and n<currentProcess['currentQueue']):
+							queues[currentProcess['currentQueue']].processBuffer.insert(0, currentProcess)
+							currentProcess=queues[n].processBuffer[0]
+							if(currentProcess['startTime']==-1):
+								currentProcess['startTime']=time
+							del queues[n].processBuffer[0]
 
 			else: # if current process is using input or output device
 				cpuRunning.append('idle')
+				currentProcess['quanta']=0
 				if(currentProcess['execution'][0]=='I'): # will go for input
 					# to complete current cycle of updateInput.
 					inputQueue.append(currentProcess) # process added to inputQueue where it'll wait for it's turn.
@@ -169,14 +180,6 @@ def MLFQ(processes, queues, t1, t2):
 			currentProcess=getNextProcess(queues, time)
 			
 			upgradeTime=0
-
-		if(degradeTime==t1):
-			if(currentProcess!='none'):
-				queues[currentProcess['currentQueue']].processBuffer.insert(0, currentProcess)
-			degradeQueues(queues)
-			currentProcess=getNextProcess(queues, time)
-			
-			degradeTime=0
 
 	# elif(degradeTime==t2):
 	# 	degrade(queues)
