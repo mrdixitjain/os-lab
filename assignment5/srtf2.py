@@ -126,30 +126,3 @@ def SRTF(processes): # main function which will implement SRTF scheduling proces
 	# 	print(i)
 	# 	print()
 	return endedProcess
-
-
-
-
-
-if __name__=='__main__':
-	n=int(input())
-	quanta=int(input())
-	processes=[]
-	for i in range(n):
-		processes.append({})
-		process=input().split()
-		processes[i]['pid']=int(process[0])
-		processes[i]['priority']=int(process[1])
-		processes[i]['arrivalTime']=int(process[2])
-		processes[i]['execution']=process[3:len(process)-1]
-		processes[i]['executionTime']=0
-		processes[i]['startTime']=-1
-		processes[i]['endTime']=-1
-		processes[i]['totalBurst']=0
-		j=4
-		while(j<len(process)):
-			if(process[j-1]=='P'):
-				processes[i]['executionTime']+=int(process[j])
-			processes[i]['totalBurst']+=int(process[j])
-			j+=2
-	SRTF(processes)
