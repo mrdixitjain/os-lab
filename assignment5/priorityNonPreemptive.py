@@ -3,6 +3,7 @@
 
 from updateInput import *
 from updateOutput import *
+from getNewProcess import *
 
 def updateReadyPNPE(ready, processes, time): # function to update ready[]. if any new process came, it'll be added to it and again it will be sorted on the basis of arrival time.
 	while(len(processes)>0 and processes[0]['arrivalTime']<=time): # to check if there is any process whose arrival time is less than current time i.e it should be ready to execute.
@@ -10,15 +11,6 @@ def updateReadyPNPE(ready, processes, time): # function to update ready[]. if an
 		del processes[0]
 	ready=sorted(ready, key = lambda i: i['priority'], reverse=True)[:]
 	return ready
-
-def getNewProcess(ready, time):
-	currentProcess="none"
-	if(len(ready)>0):
-		currentProcess=ready[0]
-		if(currentProcess['startTime']==-1):
-			currentProcess['startTime']=time
-		del ready[0]
-	return currentProcess
 
 def PriorityNonPreEmptive(processes):
 	prcs=processes[:]
